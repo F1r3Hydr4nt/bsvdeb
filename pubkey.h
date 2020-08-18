@@ -14,8 +14,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include <util/strencodings.h>
-
 const unsigned int BIP32_EXTKEY_SIZE = 74;
 
 /** A reference to a CKey: the Hash160 of its serialized public key */
@@ -168,15 +166,10 @@ public:
         return Hash(MakeSpan(vch).first(size()));
     }
 
-    const std::string ToString() const
-    {
-        return HexStr(std::vector<uint8_t>(vch, vch + size()));
-    }
-
     /*
      * Check syntactic correctness.
      *
-     * Note that this is consensus critical as CheckSig() calls it!
+     * Note that this is consensus critical as CheckECDSASignature() calls it!
      */
     bool IsValid() const
     {
@@ -196,7 +189,7 @@ public:
      * Verify a DER signature (~72 bytes).
      * If this public key is not fully valid, the return value will be false.
      */
-    bool Verify(const uint256& hash, const std::vector<unsigned char>& vchSig, bool compact = false) const;
+    bool Verify(const uint256& hash, const std::vector<unsigned char>& vchSig) const;
 
     /**
      * Check whether a signature is normalized (lower-S).
@@ -211,6 +204,25 @@ public:
 
     //! Derive BIP32 child pubkey.
     bool Derive(CPubKey& pubkeyChild, ChainCode &ccChild, unsigned int nChild, const ChainCode& cc) const;
+};
+
+class XOnlyPubKey {
+private:
+    uint256 m_keydata;
+
+public:
+    XOnlyPubKey(const uint256& in) : m_keydata(in) {}
+
+    /** Verify a 64-byte Schnorr signature.
+     *
+     * If the signature is not 64 bytes, or the public key is not fully valid, false is returned.
+     */
+    bool VerifySchnorr(const uint256& hash, const std::vector<unsigned char>& vchSig) const;
+    bool CheckPayToContract(const XOnlyPubKey& base, const uint256& hash, bool sign) const;
+
+    const unsigned char& operator[](int pos) const { return *(m_keydata.begin() + pos); }
+    const unsigned char* data() const { return m_keydata.begin(); }
+    size_t size() const { return m_keydata.size(); }
 };
 
 struct CExtPubKey {
