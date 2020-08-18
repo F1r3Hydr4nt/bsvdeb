@@ -13,7 +13,10 @@
 #include <prevector.h>
 #include <serialize.h>
 #include <uint256.h>
-#include <version.h>
+
+// version.h {
+static const int PROTOCOL_VERSION = 70016;
+// } // version.h
 
 #include <string>
 #include <vector>
@@ -105,6 +108,7 @@ private:
     const int nType;
     const int nVersion;
 public:
+    static bool debug;
 
     CHashWriter(int nTypeIn, int nVersionIn) : nType(nTypeIn), nVersion(nVersionIn) {}
 
@@ -112,6 +116,10 @@ public:
     int GetVersion() const { return nVersion; }
 
     void write(const char *pch, size_t size) {
+        if (debug) {
+            printf("#%03zu ", size); for (size_t i = 0; i < size; i++) printf("%02x", (uint8_t)pch[i]);
+            printf("\n");
+        }
         ctx.Write((const unsigned char*)pch, size);
     }
 

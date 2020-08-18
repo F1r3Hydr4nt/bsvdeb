@@ -15,7 +15,9 @@
 #include <cstdint>
 #include <iterator>
 #include <string>
+#include <cstring>
 #include <vector>
+#include <functional>
 
 #define ARRAYLEN(array)     (sizeof(array)/sizeof((array)[0]))
 
@@ -38,6 +40,7 @@ enum SafeChars
 std::string SanitizeString(const std::string& str, int rule = SAFE_CHARS_DEFAULT);
 std::vector<unsigned char> ParseHex(const char* psz);
 std::vector<unsigned char> ParseHex(const std::string& str);
+bool TryHex(const std::string& str, std::vector<unsigned char>& rv);
 signed char HexDigit(char c);
 /* Returns true if each character in str is a hex character, and has an even
  * number of hex digits.*/
@@ -160,6 +163,18 @@ bool TimingResistantEqual(const T& a, const T& b)
  */
 NODISCARD bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out);
 
+template <typename Tset, typename Tel>
+inline std::string Join(const Tset& iterable, const std::string& sep,
+        std::function<std::string(const Tel&)> strfun) {
+    std::string rv = "";
+    for (const Tel& el : iterable) {
+        rv += (rv[0] ? ", " : "") + strfun(el);
+    }
+    return rv;
+}
+
+inline std::string JoinHexStrFun(const std::vector<unsigned char>& t) { return HexStr(t); }
+
 /** Convert from one power-of-2 number base to another. */
 template<int frombits, int tobits, bool pad, typename O, typename I>
 bool ConvertBits(const O& outfn, I it, I end) {
@@ -246,5 +261,13 @@ std::string ToUpper(const std::string& str);
  * @returns         string with the first letter capitalized.
  */
 std::string Capitalize(std::string str);
+
+/**
+ * Check if a string does not contain any embedded NUL (\0) characters
+ */
+NODISCARD inline bool ValidAsCString(const std::string& str) noexcept
+{
+    return str.size() == strlen(str.c_str());
+}
 
 #endif // BITCOIN_UTIL_STRENCODINGS_H

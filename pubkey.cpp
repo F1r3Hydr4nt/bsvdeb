@@ -9,6 +9,9 @@
 #include <secp256k1_recovery.h>
 #include <secp256k1_schnorrsig.h>
 
+#include <debugger/script.h>
+#include <util/strencodings.h>
+
 namespace
 {
 /* Global secp256k1_context object used for verification. */
@@ -167,6 +170,15 @@ int ecdsa_signature_parse_der_lax(const secp256k1_context* ctx, secp256k1_ecdsa_
     return 1;
 }
 
+std::string XOnlyPubKey::ToString() const {
+    return HexStr(m_keydata);
+}
+
+bool XOnlyPubKey::IsValid() const {
+    secp256k1_xonly_pubkey pubkey;
+    return secp256k1_xonly_pubkey_parse(secp256k1_context_verify, &pubkey, m_keydata.begin());
+}
+
 XOnlyPubKey::XOnlyPubKey(Span<const unsigned char> in)
 {
     assert(in.size() == 32);
@@ -185,6 +197,22 @@ bool XOnlyPubKey::CheckPayToContract(const XOnlyPubKey& base, const uint256& has
     secp256k1_xonly_pubkey base_point;
     if (!secp256k1_xonly_pubkey_parse(secp256k1_context_verify, &base_point, base.data())) return false;
     return secp256k1_xonly_pubkey_tweak_add_check(secp256k1_context_verify, m_keydata.begin(), parity, &base_point, hash.begin());
+    /* TODO: make verbose
+    secp256k1_xonly_pubkey base_point, output_point;
+    if (!secp256k1_xonly_pubkey_parse(secp256k1_context_verify, &base_point, base.data())) {
+        btc_taproot_logf("CheckPayToContract failure: base point not parseable pubkey\n");
+        return false;
+    }
+    if (!secp256k1_xonly_pubkey_parse(secp256k1_context_verify, &output_point, m_keydata.begin())) {
+        btc_taproot_logf("CheckPayToContract failure: own point not parseable pubkey\n");
+        return false;
+    }
+    if (!secp256k1_xonly_pubkey_tweak_test(secp256k1_context_verify, &output_point, negated, &base_point, hash.begin())) {
+        btc_taproot_logf("CheckPayToContract failure: pubkey_tweak_test failed\n");
+        return false;
+    }
+    return true;
+    */
 }
 
 bool CPubKey::Verify(const uint256 &hash, const std::vector<unsigned char>& vchSig, bool compact) const {

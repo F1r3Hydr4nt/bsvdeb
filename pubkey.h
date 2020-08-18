@@ -15,6 +15,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include <util/strencodings.h>
+
 const unsigned int BIP32_EXTKEY_SIZE = 74;
 
 /** A reference to a CKey: the Hash160 of its serialized public key */
@@ -186,6 +188,11 @@ public:
         return size() == COMPRESSED_SIZE;
     }
 
+    // const std::string ToString() const
+    // {
+    //     return HexStr(std::vector<uint8_t>(vch, vch + size()));
+    // }
+
     /**
      * Verify a DER signature (~72 bytes).
      * If this public key is not fully valid, the return value will be false.
@@ -221,10 +228,12 @@ public:
      */
     bool VerifySchnorr(const uint256& msg, Span<const unsigned char> sigbytes) const;
     bool CheckPayToContract(const XOnlyPubKey& base, const uint256& hash, bool parity) const;
+    bool IsValid() const;
 
     const unsigned char& operator[](int pos) const { return *(m_keydata.begin() + pos); }
     const unsigned char* data() const { return m_keydata.begin(); }
     size_t size() const { return m_keydata.size(); }
+    std::string ToString() const;
 };
 
 struct CExtPubKey {

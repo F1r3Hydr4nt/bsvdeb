@@ -41,6 +41,10 @@ static const std::vector<script_verify_flag> svf {
     _(NULLFAIL),
     _(WITNESS_PUBKEYTYPE),
     _(CONST_SCRIPTCODE),
+    _(TAPROOT),
+    _(DISCOURAGE_UPGRADABLE_TAPROOT_VERSION),
+    _(DISCOURAGE_OP_SUCCESS),
+    _(DISCOURAGE_UPGRADABLE_PUBKEYTYPE),
     #undef _
 };
 
@@ -86,6 +90,11 @@ static unsigned int svf_parse_flags(unsigned int in_flags, const char* mod) {
     return in_flags;
 }
 
+inline bool checkenv(const std::string& flag, bool fallback = false) {
+    const auto& v = std::getenv(flag.c_str());
+    return v ? strcmp("0", v) : fallback;
+}
+
 int main(int argc, char* const* argv)
 {
     pipe_in = !isatty(fileno(stdin)) || std::getenv("DEBUG_SET_PIPE_IN");
@@ -128,9 +137,17 @@ int main(int argc, char* const* argv)
     }
 
     if (!pipe_in) {
-        if (std::getenv("DEBUG_SIGHASH")) btc_sighash_logf = btc_logf_stderr;
-        if (std::getenv("DEBUG_SIGNING")) btc_sign_logf = btc_logf_stderr;
-        if (std::getenv("DEBUG_SEGWIT"))  btc_segwit_logf = btc_logf_stderr;
+        // temporarily defaulting all to ON
+        if (checkenv("DEBUG_SIGHASH")) btc_sighash_logf = btc_logf_stderr;
+        if (checkenv("DEBUG_SIGNING", true)) btc_sign_logf = btc_logf_stderr;
+        if (checkenv("DEBUG_SEGWIT", true))  btc_segwit_logf = btc_logf_stderr;
+        if (checkenv("DEBUG_TAPROOT", true)) btc_taproot_logf = btc_logf_stderr;
+        btc_logf("LOG:");
+        if (btc_enabled(btc_sighash_logf)) btc_logf(" sighash");
+        if (btc_enabled(btc_sign_logf)) btc_logf(" sign");
+        if (btc_enabled(btc_segwit_logf)) btc_logf(" segwit");
+        if (btc_enabled(btc_taproot_logf)) btc_logf(" taproot");
+        btc_logf("\n");
     }
 
     unsigned int flags = STANDARD_SCRIPT_VERIFY_FLAGS;
@@ -152,13 +169,23 @@ int main(int argc, char* const* argv)
 
     // crude check for tx=
     if (ca.m.count('x')) {
-        if (!instance.parse_transaction(ca.m['x'].c_str(), true)) {
+        try {
+            if (!instance.parse_transaction(ca.m['x'].c_str(), true)) {
+                return 1;
+            }
+        } catch (std::exception const& ex) {
+            fprintf(stderr, "error parsing spending (--tx) transaction: %s\n", ex.what());
             return 1;
         }
         if (!quiet) fprintf(stderr, "got %stransaction %s:\n%s\n", instance.sigver == SigVersion::WITNESS_V0 ? "segwit " : "", instance.tx->GetHash().ToString().c_str(), instance.tx->ToString().c_str());
     }
     if (ca.m.count('i')) {
-        if (!instance.parse_input_transaction(ca.m['i'].c_str(), selected)) {
+        try {
+            if (!instance.parse_input_transaction(ca.m['i'].c_str(), selected)) {
+                return 1;
+            }
+        } catch (std::exception const& ex) {
+            fprintf(stderr, "error parsing input (--txin) transaction: %s\n", ex.what());
             return 1;
         }
         if (!quiet) fprintf(stderr, "got input tx #%" PRId64 " %s:\n%s\n", instance.txin_index, instance.txin->GetHash().ToString().c_str(), instance.txin->ToString().c_str());
@@ -217,12 +244,17 @@ int main(int argc, char* const* argv)
     valtype vchPushValue, p2sh_script_payload;
     while (env->script.GetOp(it, opcode, vchPushValue)) { p2sh_script_payload = vchPushValue; ++count; }
 
+    std::vector<std::string> tc_desc;
     CScript p2sh_script;
     bool has_p2sh = false;
     if (env->is_p2sh && env->p2shstack.size() > 0) {
         has_p2sh = true;
         const valtype& p2sh_script_val = env->p2shstack.back();
         p2sh_script = CScript(p2sh_script_val.begin(), p2sh_script_val.end());
+    } else if (env->sigversion == SigVersion::TAPSCRIPT) {
+        // add commitment phase
+        tc_desc = env->tce->Description();
+        count += tc_desc.size();
     }
     if (instance.successor_script.size()) {
         script_ptrs.push_back(&instance.successor_script);
@@ -246,6 +278,11 @@ int main(int argc, char* const* argv)
 
     int i = 0;
     char buf[1024];
+    if (env->sigversion == SigVersion::TAPSCRIPT) {
+        for (const auto& s : tc_desc) {
+            script_lines[i++] = strdup(strprintf("#%04d %s", i, s).c_str());
+        }
+    }
     for (size_t siter = 0; siter < script_ptrs.size(); ++siter) {
         CScript* script = script_ptrs[siter];
         const std::string& header = script_headers[siter];
@@ -417,6 +454,7 @@ static const char* opnames[] = {
     "OP_CHECKSIGVERIFY",
     "OP_CHECKMULTISIG",
     "OP_CHECKMULTISIGVERIFY",
+    "OP_CHECKSIGADD",
 
     // expansion
     "OP_NOP1",
