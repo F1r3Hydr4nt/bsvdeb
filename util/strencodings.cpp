@@ -80,6 +80,28 @@ bool IsHexNumber(const std::string& str)
     return (str.size() > starting_location);
 }
 
+/**
+ * Check if str can be hex-parsed.
+ *
+ * This differs from above by allowing whitespace.
+ */
+bool TryHex(const std::string& str, std::vector<unsigned char>& rv)
+{
+    rv.clear();
+    const char* psz = str.c_str();
+    while (*psz) {
+        while (IsSpace(*psz)) psz++;
+        signed char c = HexDigit(*psz++);
+        if (c == (signed char)-1) return false;
+        unsigned char n = (c << 4);
+        c = HexDigit(*psz++);
+        if (c == (signed char)-1) return false;
+        n |= c;
+        rv.push_back(n);
+    }
+    return true;
+}
+
 std::vector<unsigned char> ParseHex(const char* psz)
 {
     // convert hex dump to vector
@@ -125,20 +147,20 @@ void SplitHostPort(std::string in, int &portOut, std::string &hostOut) {
         hostOut = in;
 }
 
-std::string EncodeBase64(const unsigned char* pch, size_t len)
+std::string EncodeBase64(Span<const unsigned char> input)
 {
     static const char *pbase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     std::string str;
-    str.reserve(((len + 2) / 3) * 4);
-    ConvertBits<8, 6, true>([&](int v) { str += pbase64[v]; }, pch, pch + len);
+    str.reserve(((input.size() + 2) / 3) * 4);
+    ConvertBits<8, 6, true>([&](int v) { str += pbase64[v]; }, input.begin(), input.end());
     while (str.size() % 4) str += '=';
     return str;
 }
 
 std::string EncodeBase64(const std::string& str)
 {
-    return EncodeBase64((const unsigned char*)str.data(), str.size());
+    return EncodeBase64(MakeUCharSpan(str));
 }
 
 std::vector<unsigned char> DecodeBase64(const char* p, bool* pf_invalid)
@@ -200,20 +222,20 @@ std::string DecodeBase64(const std::string& str, bool* pf_invalid)
     return std::string((const char*)vchRet.data(), vchRet.size());
 }
 
-std::string EncodeBase32(const unsigned char* pch, size_t len)
+std::string EncodeBase32(Span<const unsigned char> input)
 {
     static const char *pbase32 = "abcdefghijklmnopqrstuvwxyz234567";
 
     std::string str;
-    str.reserve(((len + 4) / 5) * 8);
-    ConvertBits<8, 5, true>([&](int v) { str += pbase32[v]; }, pch, pch + len);
+    str.reserve(((input.size() + 4) / 5) * 8);
+    ConvertBits<8, 5, true>([&](int v) { str += pbase32[v]; }, input.begin(), input.end());
     while (str.size() % 8) str += '=';
     return str;
 }
 
 std::string EncodeBase32(const std::string& str)
 {
-    return EncodeBase32((const unsigned char*)str.data(), str.size());
+    return EncodeBase32(MakeUCharSpan(str));
 }
 
 std::vector<unsigned char> DecodeBase32(const char* p, bool* pf_invalid)
@@ -317,6 +339,18 @@ bool ParseInt64(const std::string& str, int64_t *out)
         n <= std::numeric_limits<int64_t>::max();
 }
 
+bool ParseUInt8(const std::string& str, uint8_t *out)
+{
+    uint32_t u32;
+    if (!ParseUInt32(str, &u32) || u32 > std::numeric_limits<uint8_t>::max()) {
+        return false;
+    }
+    if (out != nullptr) {
+        *out = static_cast<uint8_t>(u32);
+    }
+    return true;
+}
+
 bool ParseUInt32(const std::string& str, uint32_t *out)
 {
     if (!ParsePrechecks(str))
@@ -404,15 +438,6 @@ std::string FormatParagraph(const std::string& in, size_t width, size_t indent)
         }
     }
     return out.str();
-}
-
-int64_t atoi64(const char* psz)
-{
-#ifdef _MSC_VER
-    return _atoi64(psz);
-#else
-    return strtoll(psz, nullptr, 10);
-#endif
 }
 
 int64_t atoi64(const std::string& str)

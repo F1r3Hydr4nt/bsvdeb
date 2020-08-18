@@ -14,10 +14,9 @@
 
 #include <cstdint>
 #include <iterator>
-#include <cstring>
 #include <string>
+#include <cstring>
 #include <vector>
-
 #include <functional>
 
 #define ARRAYLEN(array)     (sizeof(array)/sizeof((array)[0]))
@@ -41,6 +40,7 @@ enum SafeChars
 std::string SanitizeString(const std::string& str, int rule = SAFE_CHARS_DEFAULT);
 std::vector<unsigned char> ParseHex(const char* psz);
 std::vector<unsigned char> ParseHex(const std::string& str);
+bool TryHex(const std::string& str, std::vector<unsigned char>& rv);
 signed char HexDigit(char c);
 /* Returns true if each character in str is a hex character, and has an even
  * number of hex digits.*/
@@ -51,15 +51,14 @@ bool IsHex(const std::string& str);
 bool IsHexNumber(const std::string& str);
 std::vector<unsigned char> DecodeBase64(const char* p, bool* pf_invalid = nullptr);
 std::string DecodeBase64(const std::string& str, bool* pf_invalid = nullptr);
-std::string EncodeBase64(const unsigned char* pch, size_t len);
+std::string EncodeBase64(Span<const unsigned char> input);
 std::string EncodeBase64(const std::string& str);
 std::vector<unsigned char> DecodeBase32(const char* p, bool* pf_invalid = nullptr);
 std::string DecodeBase32(const std::string& str, bool* pf_invalid = nullptr);
-std::string EncodeBase32(const unsigned char* pch, size_t len);
+std::string EncodeBase32(Span<const unsigned char> input);
 std::string EncodeBase32(const std::string& str);
 
 void SplitHostPort(std::string in, int& portOut, std::string& hostOut);
-int64_t atoi64(const char* psz);
 int64_t atoi64(const std::string& str);
 int atoi(const std::string& str);
 
@@ -101,6 +100,13 @@ NODISCARD bool ParseInt32(const std::string& str, int32_t *out);
  *   false if not the entire string could be parsed or when overflow or underflow occurred.
  */
 NODISCARD bool ParseInt64(const std::string& str, int64_t *out);
+
+/**
+ * Convert decimal string to unsigned 8-bit integer with strict parse error feedback.
+ * @returns true if the entire string could be parsed as valid integer,
+ *   false if not the entire string could be parsed or when overflow or underflow occurred.
+ */
+NODISCARD bool ParseUInt8(const std::string& str, uint8_t *out);
 
 /**
  * Convert decimal string to unsigned 32-bit integer with strict parse error feedback.

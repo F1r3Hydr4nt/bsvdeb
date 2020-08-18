@@ -31,6 +31,12 @@ static constexpr unsigned int LOCKTIME_VERIFY_SEQUENCE = (1 << 0);
 static constexpr unsigned int LOCKTIME_MEDIAN_TIME_PAST = (1 << 1);
 // }
 
+class CCoinsViewCache;
+class CTxOut;
+
+/** The maximum number of witness stack items in a standard P2WSH script */
+static const unsigned int MAX_STANDARD_P2WSH_STACK_ITEMS = 100;
+
 /**
  * Standard script verification flags that standard transactions will comply
  * with. However scripts violating these flags may still be present in valid
@@ -51,9 +57,10 @@ static constexpr unsigned int STANDARD_SCRIPT_VERIFY_FLAGS = MANDATORY_SCRIPT_VE
                                                              SCRIPT_VERIFY_WITNESS |
                                                              SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM |
                                                              SCRIPT_VERIFY_WITNESS_PUBKEYTYPE |
-                                                             SCRIPT_VERIFY_CONST_SCRIPTCODE;
-
-/** The maximum number of witness stack items in a standard P2WSH script */
-static const unsigned int MAX_STANDARD_P2WSH_STACK_ITEMS = 100;
+                                                             SCRIPT_VERIFY_CONST_SCRIPTCODE |
+                                                             SCRIPT_VERIFY_TAPROOT |
+                                                             SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_TAPROOT_VERSION |
+                                                             SCRIPT_VERIFY_DISCOURAGE_OP_SUCCESS |
+                                                             SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_PUBKEYTYPE;
 
 #endif // BITCOIN_POLICY_POLICY_H

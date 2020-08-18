@@ -9,6 +9,7 @@
 
 #include <hash.h>
 #include <serialize.h>
+#include <span.h>
 #include <uint256.h>
 
 #include <stdexcept>
@@ -168,15 +169,10 @@ public:
         return Hash(MakeSpan(vch).first(size()));
     }
 
-    const std::string ToString() const
-    {
-        return HexStr(std::vector<uint8_t>(vch, vch + size()));
-    }
-
     /*
      * Check syntactic correctness.
      *
-     * Note that this is consensus critical as CheckSig() calls it!
+     * Note that this is consensus critical as CheckECDSASignature() calls it!
      */
     bool IsValid() const
     {
@@ -191,6 +187,11 @@ public:
     {
         return size() == COMPRESSED_SIZE;
     }
+
+    // const std::string ToString() const
+    // {
+    //     return HexStr(std::vector<uint8_t>(vch, vch + size()));
+    // }
 
     /**
      * Verify a DER signature (~72 bytes).
@@ -211,6 +212,28 @@ public:
 
     //! Derive BIP32 child pubkey.
     bool Derive(CPubKey& pubkeyChild, ChainCode &ccChild, unsigned int nChild, const ChainCode& cc) const;
+};
+
+class XOnlyPubKey {
+private:
+    uint256 m_keydata;
+
+public:
+    /** Construct an x-only pubkey from exactly 32 bytes. */
+    XOnlyPubKey(Span<const unsigned char> input);
+
+    /** Verify a Schnorr signature against this public key.
+     *
+     * sigbytes must be exactly 64 bytes.
+     */
+    bool VerifySchnorr(const uint256& msg, Span<const unsigned char> sigbytes) const;
+    bool CheckPayToContract(const XOnlyPubKey& base, const uint256& hash, bool parity) const;
+    bool IsValid() const;
+
+    const unsigned char& operator[](int pos) const { return *(m_keydata.begin() + pos); }
+    const unsigned char* data() const { return m_keydata.begin(); }
+    size_t size() const { return m_keydata.size(); }
+    std::string ToString() const;
 };
 
 struct CExtPubKey {
