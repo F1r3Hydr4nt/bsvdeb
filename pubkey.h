@@ -9,6 +9,7 @@
 
 #include <hash.h>
 #include <serialize.h>
+#include <span.h>
 #include <uint256.h>
 
 #include <stdexcept>
@@ -211,14 +212,15 @@ private:
     uint256 m_keydata;
 
 public:
-    XOnlyPubKey(const uint256& in) : m_keydata(in) {}
+    /** Construct an x-only pubkey from exactly 32 bytes. */
+    XOnlyPubKey(Span<const unsigned char> input);
 
-    /** Verify a 64-byte Schnorr signature.
+    /** Verify a Schnorr signature against this public key.
      *
-     * If the signature is not 64 bytes, or the public key is not fully valid, false is returned.
+     * sigbytes must be exactly 64 bytes.
      */
-    bool VerifySchnorr(const uint256& hash, const std::vector<unsigned char>& vchSig) const;
-    bool CheckPayToContract(const XOnlyPubKey& base, const uint256& hash, bool sign) const;
+    bool VerifySchnorr(const uint256& msg, Span<const unsigned char> sigbytes) const;
+    bool CheckPayToContract(const XOnlyPubKey& base, const uint256& hash, bool parity) const;
 
     const unsigned char& operator[](int pos) const { return *(m_keydata.begin() + pos); }
     const unsigned char* data() const { return m_keydata.begin(); }

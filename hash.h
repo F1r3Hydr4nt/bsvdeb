@@ -121,8 +121,8 @@ public:
      */
     uint256 GetHash() {
         uint256 result;
-        ctx.Finalize(result.data());
-        ctx.Reset().Write(result.data(), result.size()).Finalize(result.data());
+        ctx.Finalize(result.begin());
+        ctx.Reset().Write(result.begin(), CSHA256::OUTPUT_SIZE).Finalize(result.begin());
         return result;
     }
 
@@ -132,7 +132,7 @@ public:
      */
     uint256 GetSHA256() {
         uint256 result;
-        ctx.Finalize(result.data());
+        ctx.Finalize(result.begin());
         return result;
     }
 

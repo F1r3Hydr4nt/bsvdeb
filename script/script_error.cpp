@@ -75,10 +75,8 @@ std::string ScriptErrorString(const ScriptError serror)
             return "Witness version reserved for soft-fork upgrades";
         case SCRIPT_ERR_DISCOURAGE_UPGRADABLE_TAPROOT_VERSION:
             return "Taproot version reserved for soft-fork upgrades";
-        case SCRIPT_ERR_DISCOURAGE_UNKNOWN_ANNEX:
-            return "Unknown input annex reserved for soft-fork upgrades";
         case SCRIPT_ERR_DISCOURAGE_OP_SUCCESS:
-            return "SUCCESSx reserved for soft-fork upgrades";
+            return "OP_SUCCESSx reserved for soft-fork upgrades";
         case SCRIPT_ERR_DISCOURAGE_UPGRADABLE_PUBKEYTYPE:
             return "Public key version reserved for soft-fork upgrades";
         case SCRIPT_ERR_PUBKEYTYPE:
@@ -105,6 +103,8 @@ std::string ScriptErrorString(const ScriptError serror)
             return "Invalid Taproot control block size";
         case SCRIPT_ERR_TAPSCRIPT_VALIDATION_WEIGHT:
             return "Too much signature validation relative to witness weight";
+        case SCRIPT_ERR_TAPSCRIPT_CHECKMULTISIG:
+            return "OP_CHECKMULTISIG(VERIFY) is not available in tapscript";
         case SCRIPT_ERR_OP_CODESEPARATOR:
             return "Using OP_CODESEPARATOR in non-witness script";
         case SCRIPT_ERR_SIG_FINDANDDELETE:

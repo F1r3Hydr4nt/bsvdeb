@@ -79,6 +79,13 @@ void BIP32Hash(const ChainCode &chainCode, unsigned int nChild, unsigned char he
     CHMAC_SHA512(chainCode.begin(), chainCode.size()).Write(&header, 1).Write(data, 32).Write(num, 4).Finalize(output);
 }
 
+uint256 SHA256Uint256(const uint256& input)
+{
+    uint256 result;
+    CSHA256().Write(input.begin(), 32).Finalize(result.begin());
+    return result;
+}
+
 CHashWriter TaggedHash(const std::string& tag)
 {
     CHashWriter writer(SER_GETHASH, 0);
@@ -86,11 +93,4 @@ CHashWriter TaggedHash(const std::string& tag)
     CSHA256().Write((const unsigned char*)tag.data(), tag.size()).Finalize(taghash.begin());
     writer << taghash << taghash;
     return writer;
-}
-
-uint256 SHA256Uint256(const uint256& data)
-{
-    uint256 result;
-    CSHA256().Write(data.begin(), data.size()).Finalize(result.begin());
-    return result;
 }

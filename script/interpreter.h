@@ -7,6 +7,7 @@
 #define BITCOIN_SCRIPT_INTERPRETER_H
 
 #include <script/script_error.h>
+#include <span.h>
 #include <primitives/transaction.h>
 
 #include <vector>
@@ -129,15 +130,11 @@ enum
     //
     SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_TAPROOT_VERSION = (1U << 18),
 
-    // Making the use of (unknown) annexes non-standard (currently no annexes are known)
-    //
-    SCRIPT_VERIFY_DISCOURAGE_UNKNOWN_ANNEX = (1U << 19),
-
     // Making unknown OP_SUCCESS non-standard
-    SCRIPT_VERIFY_DISCOURAGE_OP_SUCCESS = (1U << 20),
+    SCRIPT_VERIFY_DISCOURAGE_OP_SUCCESS = (1U << 19),
 
     // Making unknown public key versions (in BIP 342 scripts) non-standard
-    SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_PUBKEYTYPE = (1U << 21),
+    SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_PUBKEYTYPE = (1U << 20),
 };
 
 bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig, unsigned int flags, ScriptError* serror);
@@ -146,18 +143,18 @@ struct PrecomputedTransactionData
 {
     // BIP341 precomputed data.
     // These are single-SHA256, see https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#cite_note-15.
-    uint256 m_bip341_prevouts_hash;
-    uint256 m_bip341_sequences_hash;
-    uint256 m_bip341_outputs_hash;
-    uint256 m_bip341_spent_amounts_hash;
-    uint256 m_bip341_spent_scripts_hash;
+    uint256 m_prevouts_single_hash;
+    uint256 m_sequences_single_hash;
+    uint256 m_outputs_single_hash;
+    uint256 m_spent_amounts_single_hash;
+    uint256 m_spent_scripts_single_hash;
     //! Whether the 5 fields above are initialized.
-    bool m_bip341_ready = false;
+    bool m_bip341_taproot_ready = false;
 
     // BIP143 precomputed data (double-SHA256).
     uint256 hashPrevouts, hashSequence, hashOutputs;
     //! Whether the 3 fields above are initialized.
-    bool m_bip143_ready = false;
+    bool m_bip143_segwit_ready = false;
 
     std::vector<CTxOut> m_spent_outputs;
     //! Whether m_spent_outputs is initialized.
@@ -174,10 +171,10 @@ struct PrecomputedTransactionData
 
 enum class SigVersion
 {
-    BASE = 0,        //!< Bare scripts and P2SH redeemscripts; see BIP 16
+    BASE = 0,        //!< Bare scripts and BIP16 P2SH-wrapped redeemscripts
     WITNESS_V0 = 1,  //!< Witness v0 (P2WPKH and P2WSH); see BIP 141
-    TAPROOT = 2,     //!< Witness v1 with non-P2SH 32 byte program (Taproot), key path spending; see BIP 341
-    TAPSCRIPT = 3,   //!< Witness v1 with non-P2SH 32 byte program (Taproot), script path spending, leaf version 0xc0 (Tapscript); see BIP 342
+    TAPROOT = 2,     //!< Witness v1 with 32-byte program, not BIP16 P2SH-wrapped, key path spending; see BIP 341
+    TAPSCRIPT = 3,   //!< Witness v1 with 32-byte program, not BIP16 P2SH-wrapped, script path spending, leaf version 0xc0; see BIP 342
 };
 
 struct ScriptExecutionData
@@ -201,7 +198,7 @@ struct ScriptExecutionData
 
     /** Whether m_validation_weight_left is initialized. */
     bool m_validation_weight_left_init = false;
-    /** How much validation weight is left (decremented for every successful signature check). */
+    /** How much validation weight is left (decremented for every successful non-empty signature check). */
     int64_t m_validation_weight_left;
 };
 
@@ -228,7 +225,7 @@ public:
         return false;
     }
 
-    virtual bool CheckSchnorrSignature(const std::vector<unsigned char>& sig, const std::vector<unsigned char>& pubkey, SigVersion sigversion, const ScriptExecutionData& execdata) const
+    virtual bool CheckSchnorrSignature(Span<const unsigned char> sig, Span<const unsigned char> pubkey, SigVersion sigversion, const ScriptExecutionData& execdata) const
     {
         return false;
     }
@@ -257,13 +254,13 @@ private:
 
 protected:
     virtual bool VerifyECDSASignature(const std::vector<unsigned char>& vchSig, const CPubKey& vchPubKey, const uint256& sighash) const;
-    virtual bool VerifySchnorrSignature(const std::vector<unsigned char>& sig, const XOnlyPubKey& pubkey, const uint256& sighash) const;
+    virtual bool VerifySchnorrSignature(Span<const unsigned char> sig, const XOnlyPubKey& pubkey, const uint256& sighash) const;
 
 public:
     GenericTransactionSignatureChecker(const T* txToIn, unsigned int nInIn, const CAmount& amountIn) : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(nullptr) {}
     GenericTransactionSignatureChecker(const T* txToIn, unsigned int nInIn, const CAmount& amountIn, const PrecomputedTransactionData& txdataIn) : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn) {}
     bool CheckECDSASignature(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, SigVersion sigversion) const override;
-    bool CheckSchnorrSignature(const std::vector<unsigned char>& sig, const std::vector<unsigned char>& pubkey, SigVersion sigversion, const ScriptExecutionData& execdata) const override;
+    bool CheckSchnorrSignature(Span<const unsigned char> sig, Span<const unsigned char> pubkey, SigVersion sigversion, const ScriptExecutionData& execdata) const override;
     bool CheckLockTime(const CScriptNum& nLockTime) const override;
     bool CheckSequence(const CScriptNum& nSequence) const override;
 };
