@@ -25,5 +25,5 @@ if [ -n "$USE_VALGRIND" ]; then
 fi
 
 if [ "$RUN_UNIT_TESTS" = "true" ]; then
-  DOCKER_EXEC "cd \"${BASE_ROOT_DIR}\" && test-btcdeb"
+  DOCKER_EXEC "echo ${BASE_ROOT_DIR} && ls -la ${BASE_ROOT_DIR} && ${BASE_ROOT_DIR}/test-btcdeb"
 fi
