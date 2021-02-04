@@ -80,28 +80,6 @@ bool IsHexNumber(const std::string& str)
     return (str.size() > starting_location);
 }
 
-/**
- * Check if str can be hex-parsed.
- *
- * This differs from above by allowing whitespace.
- */
-bool TryHex(const std::string& str, std::vector<unsigned char>& rv)
-{
-    rv.clear();
-    const char* psz = str.c_str();
-    while (*psz) {
-        while (IsSpace(*psz)) psz++;
-        signed char c = HexDigit(*psz++);
-        if (c == (signed char)-1) return false;
-        unsigned char n = (c << 4);
-        c = HexDigit(*psz++);
-        if (c == (signed char)-1) return false;
-        n |= c;
-        rv.push_back(n);
-    }
-    return true;
-}
-
 std::vector<unsigned char> ParseHex(const char* psz)
 {
     // convert hex dump to vector
@@ -222,20 +200,24 @@ std::string DecodeBase64(const std::string& str, bool* pf_invalid)
     return std::string((const char*)vchRet.data(), vchRet.size());
 }
 
-std::string EncodeBase32(Span<const unsigned char> input)
+std::string EncodeBase32(Span<const unsigned char> input, bool pad)
 {
     static const char *pbase32 = "abcdefghijklmnopqrstuvwxyz234567";
 
     std::string str;
     str.reserve(((input.size() + 4) / 5) * 8);
     ConvertBits<8, 5, true>([&](int v) { str += pbase32[v]; }, input.begin(), input.end());
-    while (str.size() % 8) str += '=';
+    if (pad) {
+        while (str.size() % 8) {
+            str += '=';
+        }
+    }
     return str;
 }
 
-std::string EncodeBase32(const std::string& str)
+std::string EncodeBase32(const std::string& str, bool pad)
 {
-    return EncodeBase32(MakeUCharSpan(str));
+    return EncodeBase32(MakeUCharSpan(str), pad);
 }
 
 std::vector<unsigned char> DecodeBase32(const char* p, bool* pf_invalid)
@@ -297,7 +279,7 @@ std::string DecodeBase32(const std::string& str, bool* pf_invalid)
     return std::string((const char*)vchRet.data(), vchRet.size());
 }
 
-NODISCARD static bool ParsePrechecks(const std::string& str)
+[[nodiscard]] static bool ParsePrechecks(const std::string& str)
 {
     if (str.empty()) // No empty string allowed
         return false;
@@ -605,4 +587,26 @@ std::string HexStr(const Span<const uint8_t> s)
         rv.push_back(hexmap[v & 15]);
     }
     return rv;
+}
+
+/**
+ * Check if str can be hex-parsed.
+ *
+ * This differs from above by allowing whitespace.
+ */
+bool TryHex(const std::string& str, std::vector<unsigned char>& rv)
+{
+    rv.clear();
+    const char* psz = str.c_str();
+    while (*psz) {
+        while (IsSpace(*psz)) psz++;
+        signed char c = HexDigit(*psz++);
+        if (c == (signed char)-1) return false;
+        unsigned char n = (c << 4);
+        c = HexDigit(*psz++);
+        if (c == (signed char)-1) return false;
+        n |= c;
+        rv.push_back(n);
+    }
+    return true;
 }

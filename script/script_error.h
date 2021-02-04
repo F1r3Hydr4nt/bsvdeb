@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2018 The Bitcoin Core developers
+// Copyright (c) 2009-2020 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -70,10 +70,13 @@ typedef enum ScriptError_t
     SCRIPT_ERR_WITNESS_PUBKEYTYPE,
 
     /* Taproot */
-    SCRIPT_ERR_TAPROOT_INVALID_SIG,
+    SCRIPT_ERR_SCHNORR_SIG_SIZE,
+    SCRIPT_ERR_SCHNORR_SIG_HASHTYPE,
+    SCRIPT_ERR_SCHNORR_SIG,
     SCRIPT_ERR_TAPROOT_WRONG_CONTROL_SIZE,
     SCRIPT_ERR_TAPSCRIPT_VALIDATION_WEIGHT,
     SCRIPT_ERR_TAPSCRIPT_CHECKMULTISIG,
+    SCRIPT_ERR_TAPSCRIPT_MINIMALIF,
 
     /* Constant scriptCode */
     SCRIPT_ERR_OP_CODESEPARATOR,

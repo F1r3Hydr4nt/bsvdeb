@@ -595,8 +595,8 @@ uint256 Instance::calc_sighash() {
     txdata = PrecomputedTransactionData();
     txdata.Init(*tx.get(), std::move(spent_outputs));
     if (sigver == SigVersion::BASE) sigver = SigVersion::TAPROOT;
-    // bool ret = SignatureHashSchnorr(sighash, execdata, *txTo, nIn, hashtype, sigversion, 0x00, this->txdata);
-    if (!SignatureHashSchnorr(hash, execdata, *tx, txin_index, 0x00, sigver, 0x00, &txdata)) {
+    // bool ret = SignatureHashSchnorr(sighash, execdata, *txTo, nIn, hashtype, sigversion, this->txdata);
+    if (!SignatureHashSchnorr(hash, execdata, *tx, txin_index, 0x00, sigver, txdata)) {
         fprintf(stderr, "Failed to generate schnorr signature hash!\n");
         exit(1);
     }

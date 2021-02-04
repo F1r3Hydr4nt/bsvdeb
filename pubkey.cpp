@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2019 The Bitcoin Core developers
+// Copyright (c) 2009-2020 The Bitcoin Core developers
 // Copyright (c) 2017 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -179,40 +179,27 @@ bool XOnlyPubKey::IsValid() const {
     return secp256k1_xonly_pubkey_parse(secp256k1_context_verify, &pubkey, m_keydata.begin());
 }
 
-XOnlyPubKey::XOnlyPubKey(Span<const unsigned char> in)
+
+XOnlyPubKey::XOnlyPubKey(Span<const unsigned char> bytes)
 {
-    assert(in.size() == 32);
-    std::copy(in.begin(), in.end(), m_keydata.begin());
+    assert(bytes.size() == 32);
+    std::copy(bytes.begin(), bytes.end(), m_keydata.begin());
 }
 
-bool XOnlyPubKey::VerifySchnorr(const uint256& msg, Span<const unsigned char> sigbytes) const {
+bool XOnlyPubKey::VerifySchnorr(const uint256& msg, Span<const unsigned char> sigbytes) const
+{
     assert(sigbytes.size() == 64);
     secp256k1_xonly_pubkey pubkey;
     if (!secp256k1_xonly_pubkey_parse(secp256k1_context_verify, &pubkey, m_keydata.data())) return false;
     return secp256k1_schnorrsig_verify(secp256k1_context_verify, sigbytes.data(), msg.begin(), &pubkey);
 }
 
-bool XOnlyPubKey::CheckPayToContract(const XOnlyPubKey& base, const uint256& hash, const bool parity) const
+bool XOnlyPubKey::CheckPayToContract(const XOnlyPubKey& base, const uint256& hash, bool parity) const
 {
+    // TODO: make verbose
     secp256k1_xonly_pubkey base_point;
     if (!secp256k1_xonly_pubkey_parse(secp256k1_context_verify, &base_point, base.data())) return false;
     return secp256k1_xonly_pubkey_tweak_add_check(secp256k1_context_verify, m_keydata.begin(), parity, &base_point, hash.begin());
-    /* TODO: make verbose
-    secp256k1_xonly_pubkey base_point, output_point;
-    if (!secp256k1_xonly_pubkey_parse(secp256k1_context_verify, &base_point, base.data())) {
-        btc_taproot_logf("CheckPayToContract failure: base point not parseable pubkey\n");
-        return false;
-    }
-    if (!secp256k1_xonly_pubkey_parse(secp256k1_context_verify, &output_point, m_keydata.begin())) {
-        btc_taproot_logf("CheckPayToContract failure: own point not parseable pubkey\n");
-        return false;
-    }
-    if (!secp256k1_xonly_pubkey_tweak_test(secp256k1_context_verify, &output_point, negated, &base_point, hash.begin())) {
-        btc_taproot_logf("CheckPayToContract failure: pubkey_tweak_test failed\n");
-        return false;
-    }
-    return true;
-    */
 }
 
 bool CPubKey::Verify(const uint256 &hash, const std::vector<unsigned char>& vchSig, bool compact) const {
@@ -224,7 +211,7 @@ bool CPubKey::Verify(const uint256 &hash, const std::vector<unsigned char>& vchS
     if (!secp256k1_ec_pubkey_parse(secp256k1_context_verify, &pubkey, vch, size())) {
         return false;
     }
-    if (compact) {
+     if (compact) {
         if (vchSig.size() != 64) {
             fprintf(stderr, "vchSig.size()=%zu != 64\n", vchSig.size());
             return false;
