@@ -25,5 +25,5 @@ if [ -n "$USE_VALGRIND" ]; then
 fi
 
 if [ "$RUN_UNIT_TESTS" = "true" ]; then
-  DOCKER_EXEC ./test-btcdeb
+  DOCKER_EXEC echo "$PWD" && ./test-btcdeb
 fi
