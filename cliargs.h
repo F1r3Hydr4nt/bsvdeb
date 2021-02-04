@@ -13,7 +13,6 @@
 #include <getopt.h>
 
 #include <tinyformat.h>
-#include <filesystem>
 
 enum cliarg_type {
     no_arg = no_argument,
@@ -79,7 +78,7 @@ struct cliargs {
 
 std::string string_from_file(const std::string& path) {
     FILE* fp = fopen(path.c_str(), "r");
-    if (!fp) throw std::runtime_error("unable to open path " + path + " (pwd=" + std::filesystem::current_path().string() + ")");
+    if (!fp) throw std::runtime_error("unable to open path " + path);
     char* buf = (char*)malloc(128);
     size_t cap = 128;
     size_t idx = 0;
