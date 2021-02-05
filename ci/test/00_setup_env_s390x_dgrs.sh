@@ -4,6 +4,6 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-. 00_setup_env_s390x.sh
+. $(dirname $0)/00_setup_env_s390x.sh
 
 export BITCOIN_CONFIG="--enable-dangerous $BITCOIN_CONFIG"

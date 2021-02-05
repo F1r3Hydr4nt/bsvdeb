@@ -4,6 +4,6 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-. 00_setup_env_native_msan.sh
+. $(dirname $0)/00_setup_env_native_msan.sh
 
 export BITCOIN_CONFIG="--enable-dangerous $BITCOIN_CONFIG"
