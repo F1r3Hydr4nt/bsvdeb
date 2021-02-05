@@ -51,8 +51,8 @@ task:
     image: debian:buster
   env:
     matrix:
-      - ENABLE_DANGEROUS=1
-      - ENABLE_DANGEROUS=
+      - ENABLE_DANGEROUS: 1
+      - ENABLE_DANGEROUS: ""
     FILE_ENV: "./ci/test/00_setup_env_arm.sh"
 
 task:
@@ -62,8 +62,8 @@ task:
     image: ubuntu:bionic
   env:
     matrix:
-      - ENABLE_DANGEROUS=1
-      - ENABLE_DANGEROUS=
+      - ENABLE_DANGEROUS: 1
+      - ENABLE_DANGEROUS: ""
     FILE_ENV: "./ci/test/00_setup_env_win64.sh"
 
 task:
@@ -73,8 +73,8 @@ task:
     image: centos:8
   env:
     matrix:
-      - ENABLE_DANGEROUS=1
-      - ENABLE_DANGEROUS=
+      - ENABLE_DANGEROUS: 1
+      - ENABLE_DANGEROUS: ""
     PACKAGE_MANAGER_INSTALL: "yum install -y"
     FILE_ENV: "./ci/test/00_setup_env_i686_centos.sh"
 
@@ -87,8 +87,8 @@ task:
     memory: 24G
   env:
     matrix:
-      - ENABLE_DANGEROUS=1
-      - ENABLE_DANGEROUS=
+      - ENABLE_DANGEROUS: 1
+      - ENABLE_DANGEROUS: ""
     MAKEJOBS: "-j8"
     FILE_ENV: "./ci/test/00_setup_env_native_tsan.sh"
 
@@ -99,8 +99,8 @@ task:
     image: ubuntu:focal
   env:
     matrix:
-      - ENABLE_DANGEROUS=1
-      - ENABLE_DANGEROUS=
+      - ENABLE_DANGEROUS: 1
+      - ENABLE_DANGEROUS: ""
     FILE_ENV: "./ci/test/00_setup_env_native_msan.sh"
 
 task:
@@ -110,8 +110,8 @@ task:
     image: ubuntu:focal
   env:
     matrix:
-      - ENABLE_DANGEROUS=1
-      - ENABLE_DANGEROUS=
+      - ENABLE_DANGEROUS: 1
+      - ENABLE_DANGEROUS: ""
     FILE_ENV: "./ci/test/00_setup_env_native_asan.sh"
 
 task:
@@ -121,8 +121,8 @@ task:
     image: ubuntu:bionic
   env:
     matrix:
-      - ENABLE_DANGEROUS=1
-      - ENABLE_DANGEROUS=
+      - ENABLE_DANGEROUS: 1
+      - ENABLE_DANGEROUS: ""
     FILE_ENV: "./ci/test/00_setup_env_mac.sh"
 
 task:
@@ -135,8 +135,8 @@ task:
     image: catalina-xcode-12.1  # https://cirrus-ci.org/guide/macOS
   env:
     matrix:
-      - ENABLE_DANGEROUS=1
-      - ENABLE_DANGEROUS=
+      - ENABLE_DANGEROUS: 1
+      - ENABLE_DANGEROUS: ""
     DANGER_RUN_CI_ON_HOST: "true"
     CI_USE_APT_INSTALL: "no"
     PACKAGE_MANAGER_INSTALL: "echo"  # Nothing to do
