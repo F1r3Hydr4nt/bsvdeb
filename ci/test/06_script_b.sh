@@ -25,5 +25,6 @@ if [ -n "$USE_VALGRIND" ]; then
 fi
 
 if [ "$RUN_UNIT_TESTS" = "true" ]; then
-  DOCKER_EXEC "echo ${BASE_OUTDIR} && ${BASE_OUTDIR}/bin/test-btcdeb"
+  DOCKER_EXEC "cp -r ${BASE_ROOT_DIR}/doc ${BASE_OUTDIR}"
+  DOCKER_EXEC "cd  ${BASE_OUTDIR} && bin/test-btcdeb"
 fi
