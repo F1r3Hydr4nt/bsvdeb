@@ -45,124 +45,85 @@ compute_credits_template: &CREDITS_TEMPLATE
   use_compute_credits: $CIRRUS_REPO_FULL_NAME == 'bitcoin-core/btcdeb' && $CIRRUS_PR != ""
 
 task:
-  name: 'ARM [no dangerous] [buster]'
+  name: 'ARM [buster]'
   << : *GLOBAL_TASK_TEMPLATE
   container:
     image: debian:buster
   env:
+    matrix:
+      - ENABLE_DANGEROUS=1
+      - ENABLE_DANGEROUS=
     FILE_ENV: "./ci/test/00_setup_env_arm.sh"
 
 task:
-  name: 'ARM [dangerous] [buster]'
-  << : *GLOBAL_TASK_TEMPLATE
-  container:
-    image: debian:buster
-  env:
-    FILE_ENV: "./ci/test/00_setup_env_arm_dgrs.sh"
-
-task:
-  name: 'Win64 [no dangerous] [bionic]'
+  name: 'Win64 [bionic]'
   << : *GLOBAL_TASK_TEMPLATE
   container:
     image: ubuntu:bionic
   env:
+    matrix:
+      - ENABLE_DANGEROUS=1
+      - ENABLE_DANGEROUS=
     FILE_ENV: "./ci/test/00_setup_env_win64.sh"
 
 task:
-  name: 'Win64 [dangerous] [bionic]'
-  << : *GLOBAL_TASK_TEMPLATE
-  container:
-    image: ubuntu:bionic
-  env:
-    FILE_ENV: "./ci/test/00_setup_env_win64_dgrs.sh"
-
-task:
-  name: '32-bit + dash [no dangerous] [CentOS 8]'
+  name: '32-bit + dash [CentOS 8]'
   << : *GLOBAL_TASK_TEMPLATE
   container:
     image: centos:8
   env:
+    matrix:
+      - ENABLE_DANGEROUS=1
+      - ENABLE_DANGEROUS=
     PACKAGE_MANAGER_INSTALL: "yum install -y"
     FILE_ENV: "./ci/test/00_setup_env_i686_centos.sh"
 
 task:
-  name: '32-bit + dash [dangerous] [CentOS 8]'
-  << : *GLOBAL_TASK_TEMPLATE
-  container:
-    image: centos:8
-  env:
-    PACKAGE_MANAGER_INSTALL: "yum install -y"
-    FILE_ENV: "./ci/test/00_setup_env_i686_centos_dgrs.sh"
-
-task:
-  name: '[no dangerous, sanitizers: thread (TSan)] [focal]'
+  name: '[sanitizers: thread (TSan)] [focal]'
   << : *GLOBAL_TASK_TEMPLATE
   container:
     image: ubuntu:focal
     cpu: 4  # Double CPU and increase Memory to avoid timeout
     memory: 24G
   env:
+    matrix:
+      - ENABLE_DANGEROUS=1
+      - ENABLE_DANGEROUS=
     MAKEJOBS: "-j8"
     FILE_ENV: "./ci/test/00_setup_env_native_tsan.sh"
 
 task:
-  name: '[dangerous, sanitizers: thread (TSan)] [focal]'
-  << : *GLOBAL_TASK_TEMPLATE
-  container:
-    image: ubuntu:focal
-    cpu: 4  # Double CPU and increase Memory to avoid timeout
-    memory: 24G
-  env:
-    MAKEJOBS: "-j8"
-    FILE_ENV: "./ci/test/00_setup_env_native_tsan_dgrs.sh"
-
-task:
-  name: '[no dangerous, sanitizers: memory (MSan)] [focal]'
+  name: '[sanitizers: memory (MSan)] [focal]'
   << : *GLOBAL_TASK_TEMPLATE
   container:
     image: ubuntu:focal
   env:
+    matrix:
+      - ENABLE_DANGEROUS=1
+      - ENABLE_DANGEROUS=
     FILE_ENV: "./ci/test/00_setup_env_native_msan.sh"
 
 task:
-  name: '[dangerous, sanitizers: memory (MSan)] [focal]'
+  name: '[no sanitizers: address/leak (ASan + LSan) + undefined (UBSan) + integer] [focal]'
   << : *GLOBAL_TASK_TEMPLATE
   container:
     image: ubuntu:focal
   env:
-    FILE_ENV: "./ci/test/00_setup_env_native_msan_dgrs.sh"
-
-task:
-  name: '[no dangerous, no sanitizers: address/leak (ASan + LSan) + undefined (UBSan) + integer] [focal]'
-  << : *GLOBAL_TASK_TEMPLATE
-  container:
-    image: ubuntu:focal
-  env:
+    matrix:
+      - ENABLE_DANGEROUS=1
+      - ENABLE_DANGEROUS=
     FILE_ENV: "./ci/test/00_setup_env_native_asan.sh"
 
 task:
-  name: '[dangerous, no sanitizers: address/leak (ASan + LSan) + undefined (UBSan) + integer] [focal]'
-  << : *GLOBAL_TASK_TEMPLATE
-  container:
-    image: ubuntu:focal
-  env:
-    FILE_ENV: "./ci/test/00_setup_env_native_asan_dgrs.sh"
-
-task:
-  name: 'macOS 10.14 [no dangerous, no tests] [bionic]'
+  name: 'macOS 10.14 [no tests] [bionic]'
   << : *GLOBAL_TASK_TEMPLATE
   container:
     image: ubuntu:bionic
   env:
+    matrix:
+      - ENABLE_DANGEROUS=1
+      - ENABLE_DANGEROUS=
     FILE_ENV: "./ci/test/00_setup_env_mac.sh"
-
-task:
-  name: 'macOS 10.14 [no dangerous, no tests] [bionic]'
-  << : *GLOBAL_TASK_TEMPLATE
-  container:
-    image: ubuntu:bionic
-  env:
-    FILE_ENV: "./ci/test/00_setup_env_mac_dgrs.sh"
 
 task:
   name: 'macOS 10.15 native [no dangerous]'
@@ -173,22 +134,10 @@ task:
     # Use latest image, but hardcode version to avoid silent upgrades (and breaks)
     image: catalina-xcode-12.1  # https://cirrus-ci.org/guide/macOS
   env:
+    matrix:
+      - ENABLE_DANGEROUS=1
+      - ENABLE_DANGEROUS=
     DANGER_RUN_CI_ON_HOST: "true"
     CI_USE_APT_INSTALL: "no"
     PACKAGE_MANAGER_INSTALL: "echo"  # Nothing to do
     FILE_ENV: "./ci/test/00_setup_env_mac_host.sh"
-
-task:
-  name: 'macOS 10.15 native [dangerous]'
-  macos_brew_addon_script:
-    - brew install boost ccache libtool automake pkg-config gnu-getopt
-  << : *GLOBAL_TASK_TEMPLATE
-  osx_instance:
-    # Use latest image, but hardcode version to avoid silent upgrades (and breaks)
-    image: catalina-xcode-12.1  # https://cirrus-ci.org/guide/macOS
-  env:
-    DANGER_RUN_CI_ON_HOST: "true"
-    CI_USE_APT_INSTALL: "no"
-    PACKAGE_MANAGER_INSTALL: "echo"  # Nothing to do
-    FILE_ENV: "./ci/test/00_setup_env_mac_host_dgrs.sh"
-

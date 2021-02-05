@@ -19,6 +19,11 @@ if [ -n "${FILE_ENV}" ]; then
   source "${FILE_ENV}"
 fi
 
+if [ "$ENABLE_DANGEROUS" = "1" ]; then
+  echo "Enabling dangerous features"
+  export BITCOIN_CONFIG="--enable-dangerous $BITCOIN_CONFIG"
+fi
+
 echo "Fallback to default values in env (if not yet set)"
 # The number of parallel jobs to pass down to make and test_runner.py
 export MAKEJOBS=${MAKEJOBS:--j4}
