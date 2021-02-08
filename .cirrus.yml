@@ -44,16 +44,17 @@ compute_credits_template: &CREDITS_TEMPLATE
   # Only use credits for pull requests to the main repo
   use_compute_credits: $CIRRUS_REPO_FULL_NAME == 'bitcoin-core/btcdeb' && $CIRRUS_PR != ""
 
-task:
-  name: 'ARM [buster]'
-  << : *GLOBAL_TASK_TEMPLATE
-  container:
-    image: debian:buster
-  env:
-    matrix:
-      - ENABLE_DANGEROUS: 1
-      - ENABLE_DANGEROUS: ""
-    FILE_ENV: "./ci/test/00_setup_env_arm.sh"
+# task:
+#   name: 'ARM [buster]'
+#   << : *GLOBAL_TASK_TEMPLATE
+#   container:
+#     image: debian:buster
+#   env:
+#     matrix:
+#       - ENABLE_DANGEROUS: 1
+#       - ENABLE_DANGEROUS: ""
+#     FILE_ENV: "./ci/test/00_setup_env_arm.sh"
+# TODO: ARM is giving "/tmp/cirrus-ci-build/ci/scratch/out/arm-linux-gnueabihf/bin/test-btcdeb_orig: Invalid ELF image for this architecture"
 
 # task:
 #   name: 'Win64 [bionic]'
@@ -65,6 +66,7 @@ task:
 #       - ENABLE_DANGEROUS: 1
 #       - ENABLE_DANGEROUS: ""
 #     FILE_ENV: "./ci/test/00_setup_env_win64.sh"
+# TODO: win64 requires an installer?
 
 task:
   name: '32-bit + dash [CentOS 8]'
@@ -124,6 +126,7 @@ task:
 #       - ENABLE_DANGEROUS: 1
 #       - ENABLE_DANGEROUS: ""
 #     FILE_ENV: "./ci/test/00_setup_env_mac.sh"
+# TODO: requires deploy script
 
 # task:
 #   name: 'macOS 10.15 native [no dangerous]'
@@ -141,3 +144,4 @@ task:
 #     CI_USE_APT_INSTALL: "no"
 #     PACKAGE_MANAGER_INSTALL: "echo"  # Nothing to do
 #     FILE_ENV: "./ci/test/00_setup_env_mac_host.sh"
+# TODO: requires deploy script
