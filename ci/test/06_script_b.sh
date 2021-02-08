@@ -24,5 +24,6 @@ fi
 
 if [ "$RUN_UNIT_TESTS" = "true" ]; then
   DOCKER_EXEC ${TEST_RUNNER_ENV} cp -r ${BASE_ROOT_DIR}/doc ${BASE_OUTDIR}
+  DOCKER_EXEC ${TEST_RUNNER_ENV} echo "base outdir = ${BASE_OUTDIR}"
   DOCKER_EXEC ${TEST_RUNNER_ENV} LD_LIBRARY_PATH=$DEPENDS_DIR/$HOST/lib cd ${BASE_OUTDIR} && pwd && ls -l && ls -l bin && bin/test-btcdeb
 fi
