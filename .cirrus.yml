@@ -55,16 +55,16 @@ task:
       - ENABLE_DANGEROUS: ""
     FILE_ENV: "./ci/test/00_setup_env_arm.sh"
 
-task:
-  name: 'Win64 [bionic]'
-  << : *GLOBAL_TASK_TEMPLATE
-  container:
-    image: ubuntu:bionic
-  env:
-    matrix:
-      - ENABLE_DANGEROUS: 1
-      - ENABLE_DANGEROUS: ""
-    FILE_ENV: "./ci/test/00_setup_env_win64.sh"
+# task:
+#   name: 'Win64 [bionic]'
+#   << : *GLOBAL_TASK_TEMPLATE
+#   container:
+#     image: ubuntu:bionic
+#   env:
+#     matrix:
+#       - ENABLE_DANGEROUS: 1
+#       - ENABLE_DANGEROUS: ""
+#     FILE_ENV: "./ci/test/00_setup_env_win64.sh"
 
 task:
   name: '32-bit + dash [CentOS 8]'
@@ -114,30 +114,30 @@ task:
       - ENABLE_DANGEROUS: ""
     FILE_ENV: "./ci/test/00_setup_env_native_asan.sh"
 
-task:
-  name: 'macOS 10.14 [no tests] [bionic]'
-  << : *GLOBAL_TASK_TEMPLATE
-  container:
-    image: ubuntu:bionic
-  env:
-    matrix:
-      - ENABLE_DANGEROUS: 1
-      - ENABLE_DANGEROUS: ""
-    FILE_ENV: "./ci/test/00_setup_env_mac.sh"
+# task:
+#   name: 'macOS 10.14 [no tests] [bionic]'
+#   << : *GLOBAL_TASK_TEMPLATE
+#   container:
+#     image: ubuntu:bionic
+#   env:
+#     matrix:
+#       - ENABLE_DANGEROUS: 1
+#       - ENABLE_DANGEROUS: ""
+#     FILE_ENV: "./ci/test/00_setup_env_mac.sh"
 
-task:
-  name: 'macOS 10.15 native [no dangerous]'
-  macos_brew_addon_script:
-    - brew install boost ccache libtool automake pkg-config gnu-getopt
-  << : *GLOBAL_TASK_TEMPLATE
-  osx_instance:
-    # Use latest image, but hardcode version to avoid silent upgrades (and breaks)
-    image: catalina-xcode-12.1  # https://cirrus-ci.org/guide/macOS
-  env:
-    matrix:
-      - ENABLE_DANGEROUS: 1
-      - ENABLE_DANGEROUS: ""
-    DANGER_RUN_CI_ON_HOST: "true"
-    CI_USE_APT_INSTALL: "no"
-    PACKAGE_MANAGER_INSTALL: "echo"  # Nothing to do
-    FILE_ENV: "./ci/test/00_setup_env_mac_host.sh"
+# task:
+#   name: 'macOS 10.15 native [no dangerous]'
+#   macos_brew_addon_script:
+#     - brew install boost ccache libtool automake pkg-config gnu-getopt
+#   << : *GLOBAL_TASK_TEMPLATE
+#   osx_instance:
+#     # Use latest image, but hardcode version to avoid silent upgrades (and breaks)
+#     image: catalina-xcode-12.1  # https://cirrus-ci.org/guide/macOS
+#   env:
+#     matrix:
+#       - ENABLE_DANGEROUS: 1
+#       - ENABLE_DANGEROUS: ""
+#     DANGER_RUN_CI_ON_HOST: "true"
+#     CI_USE_APT_INSTALL: "no"
+#     PACKAGE_MANAGER_INSTALL: "echo"  # Nothing to do
+#     FILE_ENV: "./ci/test/00_setup_env_mac_host.sh"
