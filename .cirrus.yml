@@ -95,17 +95,6 @@ task:
     FILE_ENV: "./ci/test/00_setup_env_native_tsan.sh"
 
 task:
-  name: '[sanitizers: memory (MSan)] [focal]'
-  << : *GLOBAL_TASK_TEMPLATE
-  container:
-    image: ubuntu:focal
-  env:
-    matrix:
-      - ENABLE_DANGEROUS: 1
-      - ENABLE_DANGEROUS: ""
-    FILE_ENV: "./ci/test/00_setup_env_native_msan.sh"
-
-task:
   name: '[no sanitizers: address/leak (ASan + LSan) + undefined (UBSan) + integer] [focal]'
   << : *GLOBAL_TASK_TEMPLATE
   container:
